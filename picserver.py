@@ -14,7 +14,6 @@ html_footer = '</body></html>'
 class WebRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         if '.png' in self.path:
-            print self.path
             fname = '1.png'
         elif '.jpg' in self.path:
             fname = '1.jpg'
@@ -23,19 +22,20 @@ class WebRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif '.html' in self.path:
             fname = 'index.html'
         elif 'clear' in self.path:
+            print '[*] Clear logfile: ' + LOG_PATH
             if os.path.exists(LOG_PATH):
                 os.remove(LOG_PATH)
             self.send_response(200)
             self.end_headers()
-            self.wfile.write('ok')
+            self.wfile.write(self.formatMessage('ok'))
             return
         else:
             self.send_response(200)
             self.end_headers()
             try:
-                self.wfile.write(html_header + open(LOG_PATH, 'r').read() + html_footer)
+                self.wfile.write(self.formatMessage(open(LOG_PATH, 'r').read()))
             except IOError:
-                print '[*]Empty logfile: ' + LOG_PATH
+                print '[*] Empty logfile: ' + LOG_PATH
             return
 
         message_parts = ['<br>===== [%s] %s =====' % (self.path, datetime.datetime.today())]
@@ -48,6 +48,11 @@ class WebRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         self.wfile.write(open(fname, 'rb').read())
+
+    def formatMessage(self, msg):
+        html_header = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Server Log</title></head><body>'
+        html_footer = '</body></html>'
+        return html_header + msg + html_footer
 
 
 print '[*]Starting server at %s:%d' % (SERVER, PORT)
