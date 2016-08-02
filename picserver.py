@@ -7,6 +7,9 @@ SERVER = '0.0.0.0'
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 2333
 LOG_PATH = 'reqlog.txt'
 
+html_header = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Server Log</title></head><body>'
+html_footer = '</body></html>'
+
 
 class WebRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -20,7 +23,8 @@ class WebRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif '.html' in self.path:
             fname = 'index.html'
         elif 'clear' in self.path:
-            os.remove(LOG_PATH)
+            if os.path.exists(LOG_PATH):
+                os.remove(LOG_PATH)
             self.send_response(200)
             self.end_headers()
             self.wfile.write('ok')
@@ -29,9 +33,9 @@ class WebRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             try:
-                self.wfile.write(open(LOG_PATH, 'r').read())
+                self.wfile.write(html_header + open(LOG_PATH, 'r').read() + html_footer)
             except IOError:
-                print '[*]Create logfile: ' + LOG_PATH
+                print '[*]Empty logfile: ' + LOG_PATH
             return
 
         message_parts = ['<br>===== [%s] %s =====' % (self.path, datetime.datetime.today())]
